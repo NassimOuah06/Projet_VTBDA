@@ -1,0 +1,51 @@
+[
+    {
+      "id": 1,
+      "title": "Analyse des menaces sur le darknet : tendances émergentes",
+      "description": "Cet article explore les tendances actuelles des menaces sur le darknet, en mettant l'accent sur les cyberattaques ciblant les entreprises et les utilisateurs privés.",
+      "link": "https://example.com/analyse-menaces-darknet-tendances",
+      "category": "Cybersecurité",
+      "date": "2024-11-25"
+    },
+    {
+      "id": 2,
+      "title": "Les attaques par ransomware et leur origine sur le darknet",
+      "description": "Une étude approfondie des ransomwares opérant sur le darknet et comment les groupes criminels utilisent ce réseau pour coordonner leurs attaques.",
+      "link": "https://example.com/attaques-ransomware-darknet",
+      "category": "Cybersecurité",
+      "date": "2024-11-20"
+    },
+    {
+      "id": 3,
+      "title": "Le darknet comme marché des données volées : une analyse en profondeur",
+      "description": "Cet article examine comment les données volées sont commercialisées sur le darknet et quelles sont les implications pour la sécurité des informations personnelles.",
+      "link": "https://example.com/marketplace-donnees-volees-darknet",
+      "category": "Veille Menaces",
+      "date": "2024-10-30"
+    },
+    {
+      "id": 4,
+      "title": "Exploitation des vulnérabilités zéro-day par les hackers du darknet",
+      "description": "Une analyse des vulnérabilités zéro-day découvertes sur le darknet et leur utilisation croissante dans les attaques informatiques.",
+      "link": "https://example.com/vulnerabilites-zero-day-darknet",
+      "category": "Cybersecurité",
+      "date": "2024-11-15"
+    },
+    {
+      "id": 5,
+      "title": "Prévenir les attaques DDoS en surveillant le darknet",
+      "description": "Cet article explique comment la surveillance des discussions et des ressources sur le darknet peut aider à prévenir les attaques par déni de service (DDoS).",
+      "link": "https://example.com/prevenir-ddos-surveillance-darknet",
+      "category": "Veille Menaces",
+      "date": "2024-11-10"
+    },
+    {
+      "id": 6,
+      "title": "Les groupes de hackers du darknet : une menace croissante",
+      "description": "Une étude détaillée des groupes de hackers opérant sur le darknet et des nouvelles tendances dans leurs méthodes d'attaque.",
+      "link": "https://example.com/groupes-hackers-darknet",
+      "category": "Veille Menaces",
+      "date": "2024-11-05"
+    }
+  ]
+  
