@@ -1,0 +1,119 @@
+[
+    {
+        "date": "2024-12-01T10:00:00Z",
+        "source": "darkweb_forum_1",
+        "threat_type": "malware",
+        "description": "New malware targeting financial institutions.",
+        "severity": 4,
+        "target": "financial",
+        "text_column": "This new malware has been detected spreading through phishing emails."
+    },
+    {
+        "date": "2024-12-02T15:30:00Z",
+        "source": "darkweb_forum_2",
+        "threat_type": "ransomware",
+        "description": "Ransomware attack on healthcare sector.",
+        "severity": 5,
+        "target": "healthcare",
+        "text_column": "A new ransomware is encrypting patient records and demanding payment in Bitcoin."
+    },
+    {
+        "date": "2024-12-03T08:45:00Z",
+        "source": "darkweb_forum_3",
+        "threat_type": "phishing",
+        "description": "Phishing campaign targeting government officials.",
+        "severity": 3,
+        "target": "government",
+        "text_column": "Emails posing as official communications are being used to steal credentials."
+    },
+    {
+        "date": "2024-12-04T12:15:00Z",
+        "source": "darkweb_forum_4",
+        "threat_type": "data_breach",
+        "description": "Data breach affecting retail companies.",
+        "severity": 4,
+        "target": "retail",
+        "text_column": "User data from several retail websites has been leaked on the dark web."
+    },
+    {
+        "date": "2024-12-05T09:20:00Z",
+        "source": "darkweb_forum_5",
+        "threat_type": "botnet",
+        "description": "Botnet discovered targeting IoT devices.",
+        "severity": 4,
+        "target": "IoT",
+        "text_column": "This botnet is exploiting default credentials to control IoT devices globally."
+    },
+    {
+        "date": "2024-12-06T14:40:00Z",
+        "source": "darkweb_forum_6",
+        "threat_type": "ddos",
+        "description": "DDoS attack toolkit for sale.",
+        "severity": 3,
+        "target": "multiple",
+        "text_column": "A toolkit enabling large-scale DDoS attacks is being advertised on dark web forums."
+    },
+    {
+        "date": "2024-12-07T11:00:00Z",
+        "source": "darkweb_forum_7",
+        "threat_type": "identity_theft",
+        "description": "Stolen identity records available for purchase.",
+        "severity": 5,
+        "target": "individuals",
+        "text_column": "Records include sensitive information such as SSNs, credit card numbers, and addresses."
+    },
+    {
+        "date": "2024-12-08T13:30:00Z",
+        "source": "darkweb_forum_8",
+        "threat_type": "exploit",
+        "description": "Zero-day exploit targeting web servers.",
+        "severity": 5,
+        "target": "web_servers",
+        "text_column": "A critical zero-day exploit has been identified affecting major web server software."
+    },
+    {
+        "date": "2024-12-01T10:00:00Z",
+        "source": "darkweb_forum_1",
+        "threat_type": "malware",
+        "description": "New malware targeting financial institutions.",
+        "severity": 4,
+        "target": "financial",
+        "text_column": null
+    },
+    {
+        "date": null,
+        "source": "darkweb_forum_2",
+        "threat_type": "ransomware",
+        "description": null,
+        "severity": 5,
+        "target": "healthcare",
+        "text_column": "A ransomware encrypting patient data."
+    },
+    {
+        "date": "2024-12-03T08:45:00Z",
+        "source": null,
+        "threat_type": "phishing",
+        "description": "Phishing emails targeting employees.",
+        "severity": null,
+        "target": "government",
+        "text_column": "Emails are being used to steal credentials."
+    },
+    {
+        "date": "2024-12-04T12:15:00Z",
+        "source": "darkweb_forum_4",
+        "threat_type": null,
+        "description": "Sensitive user data leaked online.",
+        "severity": 3,
+        "target": null,
+        "text_column": "Retail companies affected."
+    },
+    {
+        "date": null,
+        "source": "darkweb_forum_5",
+        "threat_type": "botnet",
+        "description": null,
+        "severity": 2,
+        "target": "IoT devices",
+        "text_column": null
+    }
+]
