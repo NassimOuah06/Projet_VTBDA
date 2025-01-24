@@ -20,7 +20,7 @@ class Personne(AbstractUser):
     username = models.CharField(max_length=255, unique=True)  # Utilisez 'username' ici
     password = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
-
+   
     # Définis des related_name et related_query_name uniques
     groups = models.ManyToManyField(
         'auth.Group',
