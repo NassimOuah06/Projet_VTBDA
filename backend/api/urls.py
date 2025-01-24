@@ -12,4 +12,9 @@ urlpatterns = [
     path('articles/statestique/',views.Statestique.as_view(), name='article_visuele'),
     path('login/',views.Login.as_view(), name='login'),
     path('signeup/',views.Signe.as_view(), name='sign_up'),
+    path('users/',views.Users.as_view(), name='users'),
+    path('deleteuser/<int:user_id>',views.DeleteUser.as_view(), name='delete_user'),
+    path('logout/',views.Logout.as_view(), name='logout'),
 ]
+
+

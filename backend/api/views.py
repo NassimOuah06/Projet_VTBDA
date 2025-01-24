@@ -4,16 +4,23 @@ from rest_framework import status
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Article, Personne
+from rest_framework.permissions import AllowAny
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from .serializers import ArticleSerializer
 from .Functions.scrap import scrape_darknet_data
 from .Functions.resumer import summarize_article
 from .Functions.detecteMenace import analyser_texte
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.hashers import check_password
 import json
+import os
 import pandas as pd
 from django.contrib.auth import authenticate
 from collections import Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
 import re
+from .serializers import PersonneSerializer  # Vous devrez créer ce sérialiseur
 
 MOTS_CLES_MENACES = {
     "ransomware", "malware", "phishing", "exploit", "zero-day", "ddos", "brute force", "backdoor", 
@@ -22,6 +29,25 @@ MOTS_CLES_MENACES = {
     "Monero", "AlphaBay", "Agora", "Silk Road", "illegal drugs", "weapons", "stolen data", 
     "identity theft", "blackmail", "fraud", "credit card scam", "money laundering", "cryptocurrency", 
     "hidden services", "P2P network", "TOR network", "illegal transactions", "darknet vendor"
+}
+
+KEYWORD_IMAGE_MAPPING = {
+    "backdoor": "backdoor.jpg",
+    "cryptojacking": "cryptojacking.jpg",
+    "cyber crimes": "cybercrimes.jpg",
+    "darknet": "darknet.jpg",
+    "darkweb": "darkweb.jpg",
+    "ddos": "ddos.png",
+    "hacking": "hacking.jpg",
+    "malware": "malware.jpg",
+    "mitm": "MITM.png",
+    "phishing": "phishing.png",
+    "ransomware": "ransomware.jpg",
+    "rat": "RAT.jpg",
+    "rootkit": "rootkit.png",
+    "sql injection": "sqlinjection.png",
+    "trojan": "trojan.jpg",
+    "xss": "XSS.jpg",
 }
 
 def detecter_mots_cles(texte):
@@ -40,38 +66,62 @@ def clean_text(text):
     text = re.sub(r'[^\w\s]', '', text)  # Remove special characters
     return text.strip()
 
+
+""" lister les utilisateurs  """
+class Users(APIView):
+    def get(self, request):
+        # Récupérer tous les utilisateurs
+        users = Personne.objects.all()
+        
+        # Sérialiser les données
+        serializer = PersonneSerializer(users, many=True)
+        
+        # Retourner la réponse
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class scrape(APIView):
     def post(self, request):
-        # Chemin vers le fichier JSON généré par scrape_darknet_data
         API_KEY = "AIzaSyA5AnkgAu7SSU9Zquq475xW28tVQqxqrMQ"
         THEMES = ["darknet", "darkweb", "darknet forums", "cyber crimes", "darkweb forums", "darknet new malwares", "darknet marketplace"]
         ID_SEARCH = "459e8c331e3324237"
         OUTPUT_FILE = "resultats_darknet.json"
+
         try:
-            # Call the scraping function
+            # Appeler la fonction de scraping
             scraped_data = scrape_darknet_data(API_KEY, THEMES, ID_SEARCH, output_file=OUTPUT_FILE)
 
-            # Process and save the scraped data to the database
+            # Traiter et enregistrer les données dans la base de données
             for item in scraped_data:
-                content = item.get("content", "") 
+                content = item.get("content", "")
                 if content:
                     mot_cle = detecter_mots_cles(content)
                 else:
                     mot_cle = "No Keywords"
+
+                # Sélectionner l'image en fonction du mot-clé
+                image_name = KEYWORD_IMAGE_MAPPING.get(mot_cle.lower(), "default.jpg")
+                image_path = os.path.join("images", image_name)
+
+                # Nettoyer la description
                 description = clean_text(content)
+
+                # Créer l'article dans la base de données
                 Article.objects.create(
                     title=item.get("title", "Titre indisponible"),
                     description=description,
                     link=item.get("url", ""),
                     mot_cle=mot_cle,
-                    image='images/default.jpg',
+                    image=image_path,  # Utiliser le chemin de l'image
                     analyser=False,
                     finaliser=False
                 )
+
             return Response({"message": "Articles importés avec succès."}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
+
+""" supprimer tout les articles (juste pour les tests) """    
 class delete(APIView):
     def post(self, request):
         Article.objects.all().delete()
@@ -105,7 +155,6 @@ class SummarizeArticleAPIView(APIView):
                 "title": article.title,
                 "content": article.description  # Assuming 'description' contains the content to summarize
             }
-
             # Summarize the article
             summary = summarize_article(article_data, num_sentences= 3 , language='french')
             return Response(summary, status=status.HTTP_200_OK)
@@ -120,7 +169,7 @@ class Statestique(APIView):
     def get(self, request):
         try:
             article = Article.objects.filter()
-
+            
         except Article.DoesNotExist:
             return Response({"error": "Article non trouvé"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -149,11 +198,8 @@ class FinalizeArticleAPIView(APIView):
             return Response({"error": "Article non trouvé"}, status=status.HTTP_404_NOT_FOUND)
         try:
             # Analyse de l'article
-            
-
-            
-            # article.finaliser = True
-            # article.save()
+            article.finaliser = True
+            article.save()
             return Response(message="Article finalisé avec succes", status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -172,6 +218,15 @@ class Signe(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        # Valide l'email
+        try:
+            validate_email(email)
+        except ValidationError:
+            return Response(
+                {"error": "Veuillez fournir un email valide."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         # Vérifie si l'utilisateur ou l'email existe déjà
         if Personne.objects.filter(username=username).exists():
             return Response(
@@ -186,18 +241,24 @@ class Signe(APIView):
             )
 
         # Crée l'utilisateur
-        user = Personne.objects.create_user(
-            username=username,
-            email=email,
-            password=password  # Le mot de passe est automatiquement hashé
-        )
-
-        return Response(
-            {"message": "Compte créé avec succès."},
-            status=status.HTTP_201_CREATED
-        )
+        try:
+            user = Personne.objects.create_user(
+                username=username,
+                email=email,
+                password=password  # Le mot de passe est automatiquement hashé
+            )
+            return Response(
+                {"message": "Compte créé avec succès."},
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class Login(APIView):
+    
     def post(self, request):
         data = request.data
         username = data.get('username')
@@ -210,22 +271,82 @@ class Login(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Authentification de l'utilisateur
-        user = authenticate(username=username, password=password)
-
-        if user:
-            # Génération du token JWT
-            refresh = RefreshToken.for_user(user)
+        try:
+            # Récupérer l'utilisateur (Personne) correspondant au username
+            user = Personne.objects.get(username=username)
+        except Personne.DoesNotExist:
             return Response(
-                {
-                    "message": "Authentification réussie.",
-                    "access_token": str(refresh.access_token),
-                    "refresh_token": str(refresh)
-                },
-                status=status.HTTP_200_OK
+                {"error": "Nom d'utilisateur ou mot de passe incorrect."},
+                status=status.HTTP_400_BAD_REQUEST
             )
+
+        # Vérifier que le mot de passe est correct
+        if check_password(password, user.password):  # Compare le mot de passe fourni avec le mot de passe haché
+            try:
+                # Génération du token JWT
+                refresh = RefreshToken.for_user(user)
+                return Response(
+                    {
+                        "message": "Authentification réussie.",
+                        "access_token": str(refresh.access_token),
+                        "refresh_token": str(refresh)
+                    },
+                    status=status.HTTP_200_OK
+                )
+            except Exception as e:
+                return Response(
+                    {"error": "Une erreur s'est produite lors de la génération du token."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
         else:
             return Response(
                 {"error": "Nom d'utilisateur ou mot de passe incorrect."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+            
+class Logout(APIView):
+    permission_classes = [IsAuthenticated]  # Seuls les utilisateurs authentifiés peuvent se déconnecter
+
+    def post(self, request):
+        try:
+            # Récupérer le token de rafraîchissement (refresh token) de la requête
+            refresh_token = request.data.get('refresh_token')
+            
+            if not refresh_token:
+                return Response(
+                    {"error": "Le token de rafraîchissement est requis."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Invalider le token de rafraîchissement
+            token = RefreshToken(refresh_token)
+            token.blacklist()  # Ajouter le token à la liste noire (si SimpleJWT est configuré pour gérer les listes noires)
+
+            return Response(
+                {"message": "Déconnexion réussie."},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                {"error": "Une erreur s'est produite lors de la déconnexion."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )       
+            
+class DeleteUser(APIView):
+    def delete(self, request, user_id):
+        try:
+            # Récupérer l'utilisateur à supprimer
+            user_to_delete = Personne.objects.get(id=user_id)
+        except Personne.DoesNotExist:
+            return Response(
+                {"error": "Utilisateur non trouvé."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Supprimer l'utilisateur
+        user_to_delete.delete()
+
+        return Response(
+            {"message": f"Utilisateur avec l'ID {user_id} a été supprimé avec succès."},
+            status=status.HTTP_200_OK
+        )            

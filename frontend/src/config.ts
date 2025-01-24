@@ -1,0 +1,55 @@
+import { Icon, IconChevronRight, IconFileArrowRight, IconFileInfo, IconHome, IconMessage, IconProps, IconZoomScan } from '@tabler/icons-react';
+import { ForwardRefExoticComponent, RefAttributes } from 'react';
+
+export type NavBarItem = {
+    label: string,
+    path: string,
+    // icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>,
+    icon: any,
+    withCheveron?: boolean
+}
+
+type ConfigType = {
+    navbar: {
+        top: NavBarItem[],
+        bottom?: NavBarItem[]
+    }
+}
+
+export const config: ConfigType = {
+    navbar: {
+        top: [
+            {
+                label: "Home",
+                path: '/',
+                icon: IconHome
+            },
+            {
+                label: "Information",
+                path: '/information',
+                icon: IconFileInfo,
+                withCheveron: true
+            },
+            {
+                label: "Analyse",
+                path: '/analyse',
+                icon: IconZoomScan,
+                withCheveron: true
+            },
+            {
+                label: "Finalisation",
+                path: '/finalization',
+                icon: IconFileArrowRight,
+                withCheveron: true
+            },
+        ],
+        bottom: [
+            {
+                label: "FAQ",
+                path: '/faq',
+                icon: IconMessage,
+                withCheveron: true
+            },
+        ]
+    },
+}

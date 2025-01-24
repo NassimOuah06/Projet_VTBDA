@@ -17,25 +17,26 @@ class Article(models.Model):
 
 
 class Personne(AbstractUser):
-    user_name = models.CharField(max_length=255, unique=True)  # Ensure usernames are unique
-    password = models.CharField(max_length=255)  # Store passwords (not secure, see notes below)
-    email = models.EmailField(unique=True)  # Ensure emails are unique
+    username = models.CharField(max_length=255, unique=True)  # Utilisez 'username' ici
+    password = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)
+
     # Définis des related_name et related_query_name uniques
     groups = models.ManyToManyField(
         'auth.Group',
         verbose_name='groups',
         blank=True,
         help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
-        related_name="personne_groups",  # Nom unique pour la relation inverse
-        related_query_name="personne",   # Nom unique pour les requêtes de relation inverse
+        related_name="personne_groups",
+        related_query_name="personne",
     )
     user_permissions = models.ManyToManyField(
         'auth.Permission',
         verbose_name='user permissions',
         blank=True,
         help_text='Specific permissions for this user.',
-        related_name="personne_user_permissions",  # Nom unique pour la relation inverse
-        related_query_name="personne",             # Nom unique pour les requêtes de relation inverse
+        related_name="personne_user_permissions",
+        related_query_name="personne",
     )
 
     def __str__(self):

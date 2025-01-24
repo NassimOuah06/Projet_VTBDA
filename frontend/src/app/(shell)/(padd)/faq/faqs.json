@@ -1,0 +1,22 @@
+[
+    {
+        "question": "What is Lorem Ipsum?",
+        "answer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur auctor felis non lacus vehicula, nec posuere ligula ornare."
+    },
+    {
+        "question": "How is Lorem Ipsum used?",
+        "answer": "Lorem ipsum is typically used as placeholder text in design and publishing to demonstrate visual layouts without distracting with meaningful content."
+    },
+    {
+        "question": "Why choose Lorem Ipsum over random text?",
+        "answer": "Unlike random text, lorem ipsum has a more natural letter distribution, making it resemble readable English or other language structures."
+    },
+    {
+        "question": "Where does Lorem Ipsum originate?",
+        "answer": "Its origins trace back to classical Latin literature, with portions taken from Cicero's work, *De Finibus Bonorum et Malorum*."
+    },
+    {
+        "question": "Can Lorem Ipsum be customized?",
+        "answer": "Yes, you can generate custom-length lorem ipsum paragraphs, sentences, or words to suit specific layout needs."
+    }
+]
