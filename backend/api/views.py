@@ -87,31 +87,36 @@ class scrape(APIView):
         OUTPUT_FILE = "resultats_darknet.json"
 
         try:
-            # Appeler la fonction de scraping
+            # Call the scraping function
             scraped_data = scrape_darknet_data(API_KEY, THEMES, ID_SEARCH, output_file=OUTPUT_FILE)
 
-            # Traiter et enregistrer les données dans la base de données
+            # Process and save data to the database
             for item in scraped_data:
                 content = item.get("content", "")
                 if content:
-                    mot_cle = detecter_mots_cles(content)
+                    mot_cles = detecter_mots_cles(content)  # mot_cles is a list of keywords
                 else:
-                    mot_cle = "No Keywords"
+                    mot_cles = ["No Keywords"]  # Default keyword if no content
 
-                # Sélectionner l'image en fonction du mot-clé
-                image_name = KEYWORD_IMAGE_MAPPING.get(mot_cle.lower(), "default.jpg")
+                # Select the image based on the first matching keyword
+                image_name = "default.jpg"  # Default image
+                for keyword in mot_cles:
+                    if keyword.lower() in KEYWORD_IMAGE_MAPPING:
+                        image_name = KEYWORD_IMAGE_MAPPING[keyword.lower()]
+                        break  # Use the first matching keyword
+
                 image_path = os.path.join("images", image_name)
 
-                # Nettoyer la description
+                # Clean the description
                 description = clean_text(content)
 
-                # Créer l'article dans la base de données
+                # Create the article in the database
                 Article.objects.create(
                     title=item.get("title", "Titre indisponible"),
                     description=description,
                     link=item.get("url", ""),
-                    mot_cle=mot_cle,
-                    image=image_path,  # Utiliser le chemin de l'image
+                    mot_cle=", ".join(mot_cles),  # Store keywords as a comma-separated string
+                    image=image_path,  # Use the image path
                     analyser=False,
                     finaliser=False
                 )
@@ -314,7 +319,6 @@ class Login(APIView):
             )
             
 class Logout(APIView):
-
     def post(self, request):
         try:
             # Récupérer le token de rafraîchissement (refresh token) de la requête
@@ -339,8 +343,64 @@ class Logout(APIView):
             return Response(
                 {"error": "Une erreur s'est produite lors de la déconnexion."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )       
+            )
+""" avoir les informations d'un utilisateur """                   
+class UsersInfo(APIView):
+    def get(self, request, email):
+        try:
+            # Récupérer l'utilisateur
+            user = Personne.objects.get(email=email)
+        except Personne.DoesNotExist:
+            return Response(
+                {"error": "Utilisateur non trouvé."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Sérialiser les données de l'utilisateur
+        serializer = PersonneSerializer(user)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UpdateUser(APIView):
+    def put(self, request, email):
+        try:
+            # Retrieve the user to update
+            user = Personne.objects.get(email=email)
+        except Personne.DoesNotExist:
+            return Response(
+                {"error": "Utilisateur non trouvé."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Update user fields
+        data = request.data
+        user.username = data.get('username', user.username)
+        print(user.username)
+        # Update email if provided and ensure it's unique
+        new_email = data.get('newEmail')
+        if new_email and new_email != user.email:
+            if Personne.objects.filter(email=new_email).exists():
+                return Response(
+                    {"error": "Cet email est déjà utilisé."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            user.email = new_email
+            print(new_email)
+        # Update password if provided
+        new_password = data.get('newPassword')
+        if new_password:
+            user.password = make_password(new_password)
+        print(new_password)
             
+        # Save changes
+        user.save()
+
+        return Response(
+            {"message": "Utilisateur mis à jour avec succès."},
+            status=status.HTTP_200_OK
+        )   
+                
 class DeleteUser(APIView):
     def delete(self, request, user_id):
         try:

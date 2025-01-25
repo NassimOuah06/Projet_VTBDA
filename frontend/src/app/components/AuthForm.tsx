@@ -162,7 +162,7 @@ export const AuthForm = () => {
     e.preventDefault();
 
     // Validate fields
-    if (!email || !password || (!isLogin && !username)) {
+    if (!isLogin && (!username || !password)) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -254,18 +254,18 @@ try {
           <div className="space-y-2">
             <div className="relative">
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 outline-none peer placeholder:text-transparent"
-                placeholder="Username"
-                id="username"
+                placeholder="Email"
+                id="email"
               />
               <label
-                htmlFor="username"
+                htmlFor="email"
                 className="absolute left-4 -top-2.5 bg-white px-2 text-sm text-gray-600 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2.5 peer-focus:text-sm peer-focus:text-primary"
               >
-                Username
+                Email Address
               </label>
             </div>
           </div>
@@ -274,18 +274,18 @@ try {
         <div className="space-y-2">
           <div className="relative">
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 outline-none peer placeholder:text-transparent"
-              placeholder="Email"
-              id="email"
+              placeholder="Username"
+              id="username"
             />
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="absolute left-4 -top-2.5 bg-white px-2 text-sm text-gray-600 transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-focus:-top-2.5 peer-focus:text-sm peer-focus:text-primary"
             >
-              Email address
+              UserName
             </label>
           </div>
         </div>

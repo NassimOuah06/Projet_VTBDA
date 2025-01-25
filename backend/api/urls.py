@@ -13,6 +13,8 @@ urlpatterns = [
     path('login/',views.Login.as_view(), name='login'),
     path('signeup/',views.Signe.as_view(), name='sign_up'),
     path('users/',views.Users.as_view(), name='users'),
+    path('usersInfo/<str:email>',views.UsersInfo.as_view(), name='usersinfo'),
+    path('updateuser/<str:email>',views.UpdateUser.as_view(), name='update_user'),
     path('deleteuser/<int:user_id>',views.DeleteUser.as_view(), name='delete_user'),
     path('logout/',views.Logout.as_view(), name='logout'),
 ]
