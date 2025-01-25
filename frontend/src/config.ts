@@ -6,7 +6,8 @@ export type NavBarItem = {
     path: string,
     // icon: ForwardRefExoticComponent<IconProps & RefAttributes<Icon>>,
     icon: any,
-    withCheveron?: boolean
+    withCheveron?: boolean,
+    disabled?: boolean;
 }
 
 type ConfigType = {
@@ -20,27 +21,25 @@ export const config: ConfigType = {
     navbar: {
         top: [
             {
-                label: "Home",
-                path: '/',
-                icon: IconHome
-            },
-            {
                 label: "Information",
                 path: '/information',
                 icon: IconFileInfo,
                 withCheveron: true
+                
             },
             {
                 label: "Analyse",
                 path: '/analyse',
                 icon: IconZoomScan,
-                withCheveron: true
+                withCheveron: true,
+                disabled: true
             },
             {
-                label: "Finalisation",
+                label: "Finalisation", 
                 path: '/finalization',
                 icon: IconFileArrowRight,
-                withCheveron: true
+                withCheveron: true,
+                disabled: true
             },
         ],
         bottom: [
