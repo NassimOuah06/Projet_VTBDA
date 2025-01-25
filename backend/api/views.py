@@ -1,21 +1,22 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.views import APIView # type: ignore
+from rest_framework.response import Response # type: ignore
+from rest_framework import status # type: ignore
 from django.contrib.auth.hashers import make_password
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken # type: ignore
 from .models import Article, Personne
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny # type: ignore
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from .serializers import ArticleSerializer
 from .Functions.scrap import scrape_darknet_data
-from .Functions.resumer import summarize_article
+from .Functions.swot import perform_swot_analysis,setup_swot_analyzer
+from .Functions.resumer import summarize_long_text
 from .Functions.detecteMenace import analyser_texte
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated # type: ignore
 from django.contrib.auth.hashers import check_password
 import json
 import os
-import pandas as pd
+import pandas as pd # type: ignore
 from django.contrib.auth import authenticate
 from collections import Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -156,13 +157,14 @@ class SummarizeArticleAPIView(APIView):
         try:
             # Fetch the article from the database
             article = Article.objects.get(id=article_id)
+            summary = summarize_long_text(article.description)
             article_data = {
                 "title": article.title,
-                "content": article.description  # Assuming 'description' contains the content to summarize
+                "summary": summary  # Assuming 'description' contains the content to summarize
             }
             # Summarize the article
-            summary = summarize_article(article_data, num_sentences= 3 , language='french')
-            return Response(summary, status=status.HTTP_200_OK)
+            
+            return Response(article_data, status=status.HTTP_200_OK)
         except Article.DoesNotExist:
             return Response({"error": "Article not found."}, status=status.HTTP_404_NOT_FOUND)
         except ValueError as e:
@@ -431,4 +433,29 @@ class DeleteUser(APIView):
         return Response(
             {"message": f"Utilisateur avec l'ID {user_id} a été supprimé avec succès."},
             status=status.HTTP_200_OK
-        )            
+        )
+        
+classifier, nlp_fr, nlp_en = setup_swot_analyzer()
+class Swot(APIView):
+    def post(self, request, article_id, *args, **kwargs):
+        """
+        Effectue une analyse SWOT sur le texte de l'article spécifié par son ID.
+        """
+        try:
+            # Récupérer l'article à partir de son ID
+            article = Article.objects.get(id=article_id)
+            text = article.description  # Supposons que le texte de l'article est dans le champ `description`
+            
+            # Effectuer l'analyse SWOT en passant classifier et nlp
+            swot_results = perform_swot_analysis(text, classifier, nlp_fr, nlp_en)
+            return Response(swot_results, status=status.HTTP_200_OK)
+        except Article.DoesNotExist:
+            return Response(
+                {"error": "Article non trouvé."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Une erreur s'est produite lors de l'analyse SWOT : {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

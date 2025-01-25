@@ -130,6 +130,12 @@ export default function Page() {
             >
                 {selectedArticle && (
                     <div>
+                        <Text style={{ wordWrap: 'break-word'}}>
+                                {selectedArticle.created_at}
+                            </Text>
+                            <Text style={{ wordWrap: 'break-word'}}>
+                                {selectedArticle.link}
+                            </Text>
                         <Image src={selectedArticle.image} alt={selectedArticle.title} mb="md" />
                         <Text>{selectedArticle.description}</Text>
                     </div>

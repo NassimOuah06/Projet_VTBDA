@@ -1,22 +1,42 @@
 [
     {
-        "question": "What is Lorem Ipsum?",
-        "answer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur auctor felis non lacus vehicula, nec posuere ligula ornare."
+        "question": "C'est quoi un outil de veille ?",
+        "answer": "Un outil de veille est un logiciel ou une plateforme qui permet de collecter, analyser et surveiller des informations stratégiques en temps réel. Il est utilisé pour suivre les tendances, les concurrents, les marchés, ou tout autre sujet d'intérêt."
     },
     {
-        "question": "How is Lorem Ipsum used?",
-        "answer": "Lorem ipsum is typically used as placeholder text in design and publishing to demonstrate visual layouts without distracting with meaningful content."
+        "question": "Quels sont les avantages d'un outil de veille ?",
+        "answer": "Les avantages incluent : la centralisation des informations, la détection précoce des opportunités et des menaces, l'automatisation de la collecte de données, et l'amélioration de la prise de décision stratégique."
     },
     {
-        "question": "Why choose Lorem Ipsum over random text?",
-        "answer": "Unlike random text, lorem ipsum has a more natural letter distribution, making it resemble readable English or other language structures."
+        "question": "Quelles sont les fonctionnalités d'un outil de veille ?",
+        "answer": "Les fonctionnalités courantes incluent : la surveillance du web et des réseaux sociaux, l'analyse de données, la génération de rapports, les alertes en temps réel, et l'intégration avec d'autres outils métiers."
     },
     {
-        "question": "Where does Lorem Ipsum originate?",
-        "answer": "Its origins trace back to classical Latin literature, with portions taken from Cicero's work, *De Finibus Bonorum et Malorum*."
+        "question": "Comment choisir un outil de veille ?",
+        "answer": "Pour choisir un outil de veille, il faut considérer : les besoins spécifiques de votre entreprise, la facilité d'utilisation, les sources de données prises en charge, les fonctionnalités d'analyse, et le coût."
     },
     {
-        "question": "Can Lorem Ipsum be customized?",
-        "answer": "Yes, you can generate custom-length lorem ipsum paragraphs, sentences, or words to suit specific layout needs."
+        "question": "Quels sont les outils de veille les plus populaires ?",
+        "answer": "Parmi les outils populaires, on trouve : Meltwater, Brandwatch, Talkwalker, Hootsuite Insights, et Digimind. Chacun offre des fonctionnalités adaptées à différents types de veille (média, concurrentielle, technologique, etc.)."
+    },
+    {
+        "question": "Quelle est la différence entre veille stratégique et veille concurrentielle ?",
+        "answer": "La veille stratégique se concentre sur l'analyse globale de l'environnement (tendances, marchés, technologies), tandis que la veille concurrentielle se focalise sur les actions, les forces et les faiblesses des concurrents."
+    },
+    {
+        "question": "Comment un outil de veille intègre-t-il l'IA ?",
+        "answer": "L'intelligence artificielle est utilisée pour automatiser la collecte de données, analyser les sentiments, détecter les tendances émergentes, et fournir des insights prédictifs."
+    },
+    {
+        "question": "Quels secteurs utilisent des outils de veille ?",
+        "answer": "Les secteurs incluent : le marketing, la finance, la santé, la technologie, et la grande distribution. Chaque secteur utilise la veille pour surveiller des informations spécifiques à son domaine."
+    },
+    {
+        "question": "Comment mesurer l'efficacité d'un outil de veille ?",
+        "answer": "L'efficacité peut être mesurée par : la pertinence des informations collectées, la rapidité des alertes, la qualité des analyses, et l'impact sur les décisions stratégiques."
+    },
+    {
+        "question": "Quelles sont les limites des outils de veille ?",
+        "answer": "Les limites incluent : la surcharge d'informations, la nécessité de configurer correctement les alertes, et la dépendance à la qualité des sources de données."
     }
 ]

@@ -31,19 +31,38 @@ ChartJS.register(
 
 type ArticleInfo = {
     id: number;
-    name: string;
+    title: string;
+    description: string;
+    link: string;
+    mot_cle: string;
+    created_at: string;
     image: string;
-    text: string;
+    analyser: boolean;
+    finaliser: boolean;
 };
+
+type MenaceInfo = {
+    entites_nommees: { ORG: string[] };
+    methodes_attaque: string[];
+    mots_cles: string[];
+    patterns_suspects: string[];
+    technologies_et_outils: string[];
+        Rapport: string;
+    };
+    
+    
+
 
 export default function Page({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
     const data = searchParams.get('data');
     const router = useRouter();
     const [summary, setSummary] = useState<string | null>(null);
+    const [swot,setSwot]=useState<string | null>(null);
+    const [menace, setMenace] = useState<MenaceInfo | null>(null);
     const [keywords, setKeywords] = useState<string[] | null>(null);
     const [graphData, setGraphData] = useState<number[] | null>(null);
-    const [loading, setLoading] = useState<'summary' | 'keywords' | null>(null);
+    const [loading, setLoading] = useState<'summary' | 'keywords' |'swot' | 'menace' | null>(null);
 
     const article = data ? JSON.parse(decodeURIComponent(data)) as ArticleInfo : null;
 
@@ -52,14 +71,88 @@ export default function Page({ params }: { params: { id: string } }) {
 
         setLoading('summary');
         try {
-            const mockSummary = "This is a mock summary of the article.";
-            setSummary(mockSummary);
+            console.log('Article ID:', article.id , 'Article Name:', article.title);
+            const response = await fetch(`http://localhost:8000/api/articles/resumer/${article.id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch summary');
+            }
+
+            const data = await response.json();
+            setSummary(data.summary);
+            article.analyser = true;
+            console.log(summary)
         } catch (error) {
             console.error('Error fetching summary:', error);
         } finally {
             setLoading(null);
         }
     };
+
+const handelSwot = async () => {
+    if (!article) return;  
+    try {
+        console.log('Article ID:', article.id, 'Article Name:', article.title);
+        
+        // Envoyer le texte de l'article dans le corps de la requête
+        const response = await fetch(`http://localhost:8000/api/swot/${article.id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: article.description }), // Supposons que le texte de l'article est dans `article.content`
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch swot');
+        }
+
+        const data = await response.json();
+        setSwot(data); // Utiliser `data` directement car la réponse contient les résultats SWOT
+        article.analyser = true;
+        console.log(data); // Afficher les résultats SWOT
+    } catch (error) {
+        console.error('Error fetching swot:', error);
+    } finally {
+        setLoading(null);
+    }
+};
+
+
+
+const handelMenace = async () => {
+    if (!article) return;  
+    try {
+        console.log('Article ID:', article.id, 'Article Name:', article.title);
+        
+        // Envoyer le texte de l'article dans le corps de la requête
+        const response = await fetch(`http://localhost:8000/api/articles/analyser/${article.id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: article.description }), // Supposons que le texte de l'article est dans `article.content`
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch swot');
+        }
+
+        const data = await response.json();
+        setMenace(data.Rapport); // Utiliser `data` directement car la réponse contient les résultats SWOT
+         // Afficher les résultats SWOT
+        article.analyser = true;
+    } catch (error) {
+        console.error('Error fetching swot:', error);
+    } finally {
+        setLoading(null);
+    }
+};
 
     const handleKeywords = async () => {
         if (!article) return;
@@ -87,16 +180,16 @@ export default function Page({ params }: { params: { id: string } }) {
     };
 
     const handleFinalization = () => {
-        console.log('Article Object:', article); 
-        console.log('Data Query Parameter:', data); 
-    
+        console.log('Article Object:', article);
+        console.log('Data Query Parameter:', data);
+
         const queryParams = new URLSearchParams();
         if (summary) queryParams.set('summary', encodeURIComponent(summary));
         if (keywords) queryParams.set('keywords', encodeURIComponent(JSON.stringify(keywords)));
         if (graphData) queryParams.set('graphData', encodeURIComponent(JSON.stringify(graphData)));
         if (article) {
-            queryParams.set('articleName', encodeURIComponent(article.name)); 
-            console.log('Article Name:', article.name); 
+            queryParams.set('articleName', encodeURIComponent(article.title));
+            console.log('Article Name:', article.title);
         }
         console.log('Finalization query params:', queryParams.toString());
         router.push(`/finalization/${article?.id}?${queryParams.toString()}`);
@@ -116,7 +209,6 @@ export default function Page({ params }: { params: { id: string } }) {
                 },
             ],
         };
-
         const options = {
             responsive: true,
             plugins: {
@@ -218,13 +310,14 @@ export default function Page({ params }: { params: { id: string } }) {
             <div style={{ padding: '20px', minHeight: 'auto', overflowY: 'visible', border: '1px solid green' }}>
                 {article ? (
                     <div>
-                        <Title>{article.name}</Title>
+                        <Title>{article.title}</Title>
+
                         <div style={{ maxWidth: '800px', overflow: 'visible', border: '1px solid red' }}>
-                            <Image src={article.image} alt={article.name} my="md" />
+                            <Image src={article.image} alt={article.title} my="md" />
                         </div>
                         <div>
                             <Text style={{ wordWrap: 'break-word', whiteSpace: 'normal', border: '1px solid blue' }}>
-                                {article.text}
+                                {article.description}
                             </Text>
                         </div>
                     </div>
@@ -245,6 +338,28 @@ export default function Page({ params }: { params: { id: string } }) {
                     >
                         {loading === 'summary' ? <Loader size="sm" /> : 'Summary'}
                     </Button>
+                    <Button
+                        variant="filled"
+                        color="orange"
+                        size="md"
+                        onClick={handelSwot}
+                        disabled={loading === 'swot'}
+                        style={{ borderRadius: '8px', fontWeight: 'bold' }}
+                    >
+                        {loading === 'swot' ? <Loader size="sm" /> : 'Swot'}
+                    </Button>
+
+                    <Button
+                        variant="filled"
+                        color="red"
+                        size="md"
+                        onClick={handelMenace}
+                        disabled={loading === 'menace'}
+                        style={{ borderRadius: '8px', fontWeight: 'bold' }}
+                    >
+                        {loading === 'swot' ? <Loader size="sm" /> : 'Extract Menace'}
+                    </Button>
+
                     <Button
                         variant="outline"
                         color="teal"
@@ -274,6 +389,99 @@ export default function Page({ params }: { params: { id: string } }) {
                 </Box>
             )}
 
+{swot && (
+    <Box style={{ padding: '20px', marginTop: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
+        <Title order={3}>Swot Analysis</Title>
+        {Object.entries(swot).map(([category, sentences]) => (
+            <div key={category} style={{ marginBottom: '16px' }}>
+                <Title order={4} style={{ marginBottom: '8px' }}>{category}</Title>
+                <ul>
+                    {Array.isArray(sentences) && sentences.map((sentence: string, index: number) => (
+                        <li key={index}>{sentence}</li>
+                    ))}
+                </ul>
+            </div>
+        ))}
+    </Box>
+)}
+
+{menace && (
+    <Box
+        style={{
+            padding: '20px',
+            marginTop: '20px',
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            backgroundColor: '#f9f9f9',
+        }}
+    >
+        <Title order={3} style={{ marginBottom: '20px' }}>
+            <strong>Menace Analysis</strong>
+        </Title>
+
+        {/* Entités Nommées */}
+        <div style={{ marginBottom: '15px' }}>
+            <h4 style={{ fontWeight: 'bold' }}>Entités Nommées (ORG)</h4>
+            <ul>
+                {menace.entites_nommees.ORG.map((org, index) => (
+                    <li key={index}>{org}</li>
+                ))}
+            </ul>
+        </div>
+
+        {/* Méthodes d'Attaque */}
+        <div style={{ marginBottom: '15px' }}>
+            <h4 style={{ fontWeight: 'bold' }}>Méthodes d'Attaque</h4>
+            <ul>
+                {menace.methodes_attaque.map((methode, index) => (
+                    <li key={index}>
+                        {methode
+                            .replace(/\\b\(\?:/g, '') // Supprime \b(?: pour nettoyer les regex
+                            .replace(/\\b/g, '') // Supprime \b
+                            .replace(/\|/g, ', ') // Remplace les | par des virgules pour une meilleure lisibilité
+                        }
+                    </li>
+                ))}
+            </ul>
+        </div>
+
+        {/* Mots-Clés */}
+        <div style={{ marginBottom: '15px' }}>
+            <h4 style={{ fontWeight: 'bold' }}>Mots-Clés</h4>
+            <ul>
+                {menace.mots_cles.map((mot, index) => (
+                    <li key={index}>{mot}</li>
+                ))}
+            </ul>
+        </div>
+
+        {/* Patterns Suspects */}
+        <div style={{ marginBottom: '15px' }}>
+            <h4 style={{ fontWeight: 'bold' }}>Patterns Suspects</h4>
+            <ul>
+                {menace.patterns_suspects.map((pattern, index) => (
+                    <li key={index}>
+                        {pattern
+                            .replace(/\\b\(\?:/g, '') // Supprime \b(?: pour nettoyer les regex
+                            .replace(/\\b/g, '') // Supprime \b
+                            .replace(/\|/g, ', ') // Remplace les | par des virgules pour une meilleure lisibilité
+                        }
+                    </li>
+                ))}
+            </ul>
+        </div>
+
+        {/* Technologies et Outils */}
+        <div>
+            <h4 style={{ fontWeight: 'bold' }}>Technologies et Outils</h4>
+            <ul>
+                {menace.technologies_et_outils.map((tech, index) => (
+                    <li key={index}>{tech}</li>
+                ))}
+            </ul>
+        </div>
+    </Box>
+)}
             {keywords && (
                 <Box style={{ padding: '20px', marginTop: '20px'}}>
                     <Title order={3}>Extracted Keywords</Title>

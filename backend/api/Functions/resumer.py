@@ -1,81 +1,73 @@
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize, sent_tokenize
-from collections import defaultdict
-import heapq
-import re
+from transformers import pipeline
 
-# Ensure NLTK resources are downloaded
-def ensure_nltk_resources():
+def analyze_long_text_with_bert(text, summarizer, max_chunk_length=1500, base_max_length=400, base_min_length=100):
+    """
+    Génère un résumé d'un texte long en le divisant en morceaux.
+
+    Args:
+        text (str): Le texte long à résumer.
+        summarizer (transformers.pipeline): Un pipeline de résumé préconfiguré.
+        max_chunk_length (int): La longueur maximale de chaque morceau de texte (en tokens).
+        base_max_length (int): Longueur maximale de base du résumé.
+        base_min_length (int): Longueur minimale de base du résumé.
+
+    Returns:
+        dict: Un dictionnaire contenant le résumé généré.
+    """
+    # Diviser le texte en morceaux
+    chunks = [text[i:i + max_chunk_length] for i in range(0, len(text), max_chunk_length)]
+
+    # Résumer chaque morceau
+    summaries = []
+    for chunk in chunks:
+        # Calcul dynamique des longueurs basées sur la longueur du chunk
+        input_length = len(chunk.split())
+        max_length = min(base_max_length, input_length // 2)  # max_length ne doit pas dépasser la moitié de la longueur d'entrée
+        min_length = min(base_min_length, input_length // 4)  # min_length proportionnel à la longueur d'entrée
+
+        try:
+            summary = summarizer(chunk, max_length=max_length, min_length=min_length, do_sample=False)
+            summaries.append(summary[0]['summary_text'])
+        except Exception as e:
+            print(f"Erreur lors du résumé d'un morceau : {e}")
+
+    # Combiner les résumés partiels en un seul texte
+    combined_summary = " ".join(summaries)
+
+    # Calcul dynamique pour le résumé final
+    combined_input_length = len(combined_summary.split())
+    final_max_length = min(base_max_length, combined_input_length // 2)
+    final_min_length = min(base_min_length, combined_input_length // 4)
+
     try:
-        nltk.data.find('tokenizers/punkt')
-        nltk.data.find('corpora/stopwords')
-    except LookupError:
-        nltk.download('punkt')
-        nltk.download('stopwords')
+        final_summary = summarizer(combined_summary, max_length=final_max_length, min_length=final_min_length, do_sample=False)
+    except Exception as e:
+        print(f"Erreur lors du résumé final : {e}")
+        final_summary = [{"summary_text": combined_summary}]  # En cas d'erreur, retourner le texte combiné
 
+    return {
+        'resume': final_summary[0]['summary_text']
+    }
 
-ensure_nltk_resources()
-
-
-def clean_text(text):
+def summarize_long_text(content, num_sentences=10, model_name="facebook/bart-large-cnn"):
     """
-    Cleans the text by removing special characters and unnecessary spaces.
+    Génère un résumé pour un texte long.
+
+    :param content: Le texte à résumer.
+    :param num_sentences: Nombre de phrases souhaitées dans le résumé.
+    :param model_name: Nom du modèle à utiliser pour le résumé.
+    :return: Résumé généré.
     """
-    text = re.sub(r'\s+', ' ', text)  # Remove multiple spaces
-    text = re.sub(r'[^\w\s]', '', text)  # Remove special characters
-    return text.strip()
+    # Configuration du pipeline de résumé
+    summarizer = pipeline("summarization", model=model_name)
+
+    # Ajuster les paramètres de base pour des résumés longs
+    base_max_length = num_sentences * 40
+    base_min_length = num_sentences * 20
+
+    # Appel de la fonction
+    result = analyze_long_text_with_bert(content, summarizer, base_max_length=base_max_length, base_min_length=base_min_length)
+
+    return result['resume']
 
 
-def summarize_text(content, num_sentences=3, language='french'):
-    """
-    Summarizes a given text by extracting the most significant sentences.
-
-    :param content: The text to summarize.
-    :param num_sentences: The number of sentences to include in the summary.
-    :param language: The language of the text (default: 'french').
-    :return: The summarized text.
-    """
-    if language not in stopwords.fileids():
-        raise ValueError(f"Language '{language}' is not supported. Supported languages: {', '.join(stopwords.fileids())}")
-
-    if not content or len(content.split()) < num_sentences:
-        raise ValueError("Text is too short to summarize.")
-
-    content = clean_text(content)
-    sentences = sent_tokenize(content, language=language)
-    words = word_tokenize(content.lower(), language=language)
-    stop_words = set(stopwords.words(language))
-
-    word_freq = defaultdict(int)
-    for word in words:
-        if word not in stop_words and word.isalnum():
-            word_freq[word] += 1
-
-    sentence_scores = defaultdict(int)
-    for sentence in sentences:
-        for word in word_tokenize(sentence.lower(), language=language):
-            if word in word_freq:
-                sentence_scores[sentence] += word_freq[word]
-
-    summarized_sentences = heapq.nlargest(num_sentences, sentence_scores, key=sentence_scores.get)
-    return ' '.join(summarized_sentences).capitalize()
-
-
-def summarize_article(article, num_sentences=3, language='english'):
-    """
-    Summarizes a single article.
-
-    :param article: A dictionary containing 'title' and 'content'.
-    :param num_sentences: Number of sentences to include in the summary.
-    :param language: Language of the article.
-    :return: A dictionary with the title and summarized content.
-    """
-    content = article.get("content", "")
-    title = article.get("title", "Untitled")
-
-    if not content:
-        raise ValueError("No content available to summarize.")
-
-    summary = summarize_text(content, num_sentences=num_sentences, language=language)
-    return {"title": title, "summary": summary}
