@@ -9,7 +9,7 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from .serializers import ArticleSerializer
 from .Functions.scrap import scrape_darknet_data
-from .Functions.resumer import summarize_article
+from .Functions.resumer import summarize_long_text
 from .Functions.detecteMenace import analyser_texte
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.hashers import check_password
@@ -151,18 +151,18 @@ class ArticleDetailAPIView(APIView):
         return Response(serializer.data)
 
 class SummarizeArticleAPIView(APIView):
-    def get(self, request, article_id):
+    def post(self, request, article_id):
 
         try:
             # Fetch the article from the database
             article = Article.objects.get(id=article_id)
+            summary = summarize_long_text(article.description)
             article_data = {
                 "title": article.title,
-                "content": article.description  # Assuming 'description' contains the content to summarize
+                "summary": summary  # Assuming 'description' contains the content to summarize
             }
             # Summarize the article
-            summary = summarize_article(article_data, num_sentences= 3 , language='french')
-            return Response(summary, status=status.HTTP_200_OK)
+            return Response(article_data, status=status.HTTP_200_OK)
         except Article.DoesNotExist:
             return Response({"error": "Article not found."}, status=status.HTTP_404_NOT_FOUND)
         except ValueError as e:

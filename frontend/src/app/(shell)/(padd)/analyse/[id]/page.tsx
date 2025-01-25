@@ -31,10 +31,16 @@ ChartJS.register(
 
 type ArticleInfo = {
     id: number;
-    name: string;
+    title: string;
+    description: string;
+    link: string;
+    mot_cle: string;
+    created_at: string;
     image: string;
-    text: string;
+    analyser: boolean;
+    finaliser: boolean;
 };
+
 
 export default function Page({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
@@ -52,8 +58,22 @@ export default function Page({ params }: { params: { id: string } }) {
 
         setLoading('summary');
         try {
-            const mockSummary = "This is a mock summary of the article.";
-            setSummary(mockSummary);
+            console.log('Article ID:', article.id , 'Article Name:', article.title);
+            const response = await fetch(`http://localhost:8000/api/articles/resumer/${article.id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch summary');
+            }
+
+            const data = await response.json();
+            setSummary(data.summary);
+            article.analyser = true;
+            console.log(summary)
         } catch (error) {
             console.error('Error fetching summary:', error);
         } finally {
@@ -63,13 +83,40 @@ export default function Page({ params }: { params: { id: string } }) {
 
     const handleKeywords = async () => {
         if (!article) return;
-
+    
         setLoading('keywords');
         try {
-            const mockKeywords = ['mockKeyword1', 'mockKeyword2', 'mockKeyword3'];
-            setKeywords(mockKeywords);
+            // Appeler l'endpoint Django pour récupérer les détails de l'article
+            const response = await fetch(`http://127.0.0.1:8000/api/articles/${article.id}`, {
+                method: 'GET', // Méthode HTTP
+                headers: {
+                    'Content-Type': 'application/json', // Type de contenu
+                },
+            });
+    
+            if (!response.ok) {
+                throw new Error('Erreur lors de la récupération des détails de l\'article');
+            }
+    
+            const data = await response.json(); // Convertir la réponse en JSON
+            console.log('Détails de l\'article:', data);
+    
+             // Diviser data.mot_cle en un ensemble de mots-clés uniques
+            const mockKeywords = new Set(
+                data.mot_cle
+                     // Diviser la chaîne en tableau
+                     // Supprimer les espaces inutiles
+                    .filter((keyword: string) => keyword.length > 0) // Supprimer les chaînes vides
+            );
+
+            // Convertir le Set en tableau (si nécessaire)
+            const uniqueKeywords = Array.from(mockKeywords);
+
+            // Mettre à jour l'état des mots-clés
+            setKeywords(uniqueKeywords as string[]);
+    
         } catch (error) {
-            console.error('Error fetching keywords:', error);
+            console.error('Erreur lors de la récupération des détails de l\'article:', error);
         } finally {
             setLoading(null);
         }
@@ -87,16 +134,16 @@ export default function Page({ params }: { params: { id: string } }) {
     };
 
     const handleFinalization = () => {
-        console.log('Article Object:', article); 
-        console.log('Data Query Parameter:', data); 
-    
+        console.log('Article Object:', article);
+        console.log('Data Query Parameter:', data);
+
         const queryParams = new URLSearchParams();
         if (summary) queryParams.set('summary', encodeURIComponent(summary));
         if (keywords) queryParams.set('keywords', encodeURIComponent(JSON.stringify(keywords)));
         if (graphData) queryParams.set('graphData', encodeURIComponent(JSON.stringify(graphData)));
         if (article) {
-            queryParams.set('articleName', encodeURIComponent(article.name)); 
-            console.log('Article Name:', article.name); 
+            queryParams.set('articleName', encodeURIComponent(article.title));
+            console.log('Article Name:', article.title);
         }
         console.log('Finalization query params:', queryParams.toString());
         router.push(`/finalization/${article?.id}?${queryParams.toString()}`);
@@ -218,13 +265,14 @@ export default function Page({ params }: { params: { id: string } }) {
             <div style={{ padding: '20px', minHeight: 'auto', overflowY: 'visible', border: '1px solid green' }}>
                 {article ? (
                     <div>
-                        <Title>{article.name}</Title>
+                        <Title>{article.title}</Title>
+
                         <div style={{ maxWidth: '800px', overflow: 'visible', border: '1px solid red' }}>
-                            <Image src={article.image} alt={article.name} my="md" />
+                            <Image src={article.image} alt={article.title} my="md" />
                         </div>
                         <div>
                             <Text style={{ wordWrap: 'break-word', whiteSpace: 'normal', border: '1px solid blue' }}>
-                                {article.text}
+                                {article.description}
                             </Text>
                         </div>
                     </div>
