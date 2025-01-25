@@ -318,6 +318,19 @@ class Login(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
             
+class GetEmailUser(APIView):
+    def get(self, request, username):
+        try:
+            # Récupérer l'utilisateur
+            user = Personne.objects.get(username=username)
+        except Personne.DoesNotExist:
+            return Response(
+                {"error": "Utilisateur non trouvé."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        return Response({"email": user.email}, status=status.HTTP_200_OK)            
+            
 class Logout(APIView):
     def post(self, request):
         try:

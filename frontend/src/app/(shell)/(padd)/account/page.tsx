@@ -12,12 +12,33 @@ export default function Page() {
     const [editedEmail, setEditedEmail] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [editedPassword, setEditedPassword] = useState('');
+    const [email, setEmail] = useState('');
     const router = useRouter();
+    const username = sessionStorage.getItem('username');
+    const pwd = sessionStorage.getItem('password') || '********';
+
+    const fetchUserEmail=async (username: string)=>{
+    try {
+            const response = await fetch(`http://127.0.0.1:8000/api/getemailuser/${username}`);
+            const data = await response.json();
+            if (response.ok) {
+                setEmail(data.email);
+            } else {
+                console.error('Error fetching user:', data.error);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error fetching user:', error);
+            return null;
+        }
+
+    }
+
 
     useEffect(() => {
-        const email = sessionStorage.getItem('email');
-        const pwd = sessionStorage.getItem('password') || '********';
-        
+        if(username){
+            fetchUserEmail(username);
+        }
         if (email) {
             fetchUserFromDatabase(email).then(user => {
                 if (user) {
@@ -28,13 +49,13 @@ export default function Page() {
                 }
             });
         }
-    }, []);
+    }, [email]);
 
     const fetchUserFromDatabase = async (email: string) => {
         try {
             const response = await fetch(`http://127.0.0.1:8000/api/usersInfo/${email}`);
             const data = await response.json();
-
+      
             if (response.ok) {
                 return data; 
             } else {
@@ -46,6 +67,7 @@ export default function Page() {
             return null;
         }
     };
+
 
    const handleLogout = async () => {
     const refreshToken = localStorage.getItem('refresh_token');

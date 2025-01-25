@@ -6,6 +6,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconSearch } from "@tabler/icons-react";
 import { useRouter } from 'next/navigation';
 
+
 type ArticleInfo = {
     id: number;
     title: string;
@@ -19,38 +20,50 @@ type ArticleInfo = {
 };
 
 const KEYWORD_IMAGE_MAPPING: { [key: string]: string } = {
-    "backdoor": "information/images/backdoor.jpg",
-    "cryptojacking": "information/images/cryptojacking.jpg",
-    "cyber crimes": "information/images/cybercrimes.jpg",
-    "darknet": "information/images/darknet.jpg",
-    "darkweb": "information/images/darkweb.jpg",
-    "ddos": "information/images/ddos.png",
-    "hacking": "information/images/hacking.jpg",
-    "malware": "information/images/malware.jpg",
-    "mitm": "information/images/MITM.png",
-    "phishing": "information/images/phishing.png",
-    "ransomware": "information/images/ransomware.jpg",
-    "rat": "information/images/RAT.jpg",
-    "rootkit": "information/images/rootkit.png",
-    "sql injection": "information/images/sqlinjection.png",
-    "trojan": "information/images/trojan.jpg",
-    "xss": "information/images/XSS.jpg",
+    "backdoor": "/images/backdoor.jpg",
+    "cryptojacking": "/images/cryptojacking.jpg",
+    "cyber crimes": "/images/cybercrimes.jpg",
+    "darknet": "/images/darknet.jpg",
+    "darkweb": "/images/darkweb.jpg",
+    "ddos": "/images/ddos.png",
+    "hacking": "/images/hacking.jpg",
+    "malware": "/images/malware.jpg",
+    "mitm": "/images/MITM.png",
+    "phishing": "/images/phishing.png",
+    "ransomware": "/images/ransomware.jpg",
+    "rat": "/images/RAT.jpg",
+    "rootkit": "/images/rootkit.png",
+    "sql injection": "/images/sqlinjection.png",
+    "trojan": "/images/trojan.jpg",
+    "xss": "/images/XSS.jpg",
+    "default1": "/images/atc.jpg",
+    "default2": "/images/atc2.jpg",
+    "default3": "/images/atc3.jpg",
+    "default4": "/images/atc4.jpg",
+    "default5": "/images/atc5.jpg",
+    "default6": "/images/atc6.jpg",
+    "default7": "/images/atc7.jpg",
+    "default8": "/images/atc8.jpg",
+    "default9": "/images/atc9.jpg"
 };
 
 const getImageForKeywords = (keywords: string): string => {
-    // Diviser la chaîne de mots-clés en un tableau
-    const keywordList = keywords.split(',').map(keyword => keyword.trim().toLowerCase());
+    const keywordList = keywords.split(',').map((keyword) => keyword.trim().toLowerCase());
 
-    // Trouver la première image correspondante
+    // Rechercher la première correspondance avec les mots-clés
     for (const keyword of keywordList) {
         if (KEYWORD_IMAGE_MAPPING[keyword]) {
             return KEYWORD_IMAGE_MAPPING[keyword];
         }
     }
 
-    // Si aucun mot-clé ne correspond, retourner une image par défaut
-    return "/images/default.jpg";
+    // Retourner une image par défaut si aucun mot-clé ne correspond
+    const defaultImages = Object.values(KEYWORD_IMAGE_MAPPING).filter((key) =>
+        key.startsWith('/images/atc')
+    );
+    return defaultImages[Math.floor(Math.random() * defaultImages.length)];
 };
+
 export default function Page() {
     const router = useRouter();
     const [opened, { open, close }] = useDisclosure(false);
@@ -59,28 +72,29 @@ export default function Page() {
     const [articles, setArticles] = useState<ArticleInfo[]>([]);
 
     useEffect(() => {
-    // Fetch articles from the Django backend
-    const fetchArticles = async () => {
-        try {
-            const response = await fetch('http://127.0.0.1:8000/api/articles/');
-            if (response.ok) {
-                const data = await response.json();
-                // Map articles to include the corresponding image
-                const articlesWithImages = data.map((article: ArticleInfo) => ({
-                    ...article,
-                    image: getImageForKeywords(article.mot_cle), // Utiliser la fonction pour obtenir l'image
-                }));
-                setArticles(articlesWithImages);
-            } else {
-                console.error('Failed to fetch articles');
+        // Fetch articles from the Django backend
+        const fetchArticles = async () => {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/articles/');
+                if (response.ok) {
+                    const data = await response.json();
+                    // Map articles to include the corresponding image
+                    const articlesWithImages = data.map((article: ArticleInfo) => ({
+                        ...article,
+                        // Assurez-vous que chaque article a au moins un mot-clé
+                        mot_cle: article.mot_cle || "default",
+                        image: getImageForKeywords(article.mot_cle), // Utiliser la fonction pour obtenir l'image
+                    }));
+                    setArticles(articlesWithImages);
+                } else {
+                    console.error('Failed to fetch articles');
+                }
+            } catch (error) {
+                console.error('Error fetching articles:', error);
             }
-        } catch (error) {
-            console.error('Error fetching articles:', error);
-        }
-    };
-    
-    fetchArticles();
-}, []);
+        };
+        fetchArticles();
+    }, []);
 
     const handleAnalyseClick = (info: ArticleInfo) => {
         console.log("Analyse button clicked for article:", info.title);

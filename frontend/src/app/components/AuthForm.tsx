@@ -211,14 +211,15 @@ try {
     if (data.access_token && data.refresh_token) {
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('refresh_token', data.refresh_token);
+        sessionStorage.setItem('username', username);
+        sessionStorage.setItem('password', password);
         console.log("Tokens stored successfully.");
     }
 
     // Stocke les informations utilisateur dans sessionStorage (uniquement si nécessaire)
-    if (!isLogin) {
-        sessionStorage.setItem('email', email);
-        sessionStorage.setItem('password', password);
-    }
+    
+        
+    
 
     // Redirection après authentification réussie
     console.log("Authenticated successfully. Redirecting...");
