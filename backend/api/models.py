@@ -40,4 +40,4 @@ class Personne(AbstractUser):
     )
 
     def __str__(self):
-        return self.user_name  # Human-readable representation
+        return self.username  # Human-readable representation

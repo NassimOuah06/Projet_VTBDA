@@ -247,8 +247,17 @@ class Signe(APIView):
                 email=email,
                 password=password  # Le mot de passe est automatiquement hashé
             )
+
+            # Génération des tokens
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
             return Response(
-                {"message": "Compte créé avec succès."},
+                {
+                    "message": "Compte créé avec succès.",
+                    "access_token": access_token,
+                    "refresh_token": str(refresh)
+                },
                 status=status.HTTP_201_CREATED
             )
         except Exception as e:
@@ -305,23 +314,23 @@ class Login(APIView):
             )
             
 class Logout(APIView):
-    permission_classes = [IsAuthenticated]  # Seuls les utilisateurs authentifiés peuvent se déconnecter
 
     def post(self, request):
         try:
             # Récupérer le token de rafraîchissement (refresh token) de la requête
             refresh_token = request.data.get('refresh_token')
-            
+            print(refresh_token)
             if not refresh_token:
                 return Response(
                     {"error": "Le token de rafraîchissement est requis."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-
+            
             # Invalider le token de rafraîchissement
             token = RefreshToken(refresh_token)
-            token.blacklist()  # Ajouter le token à la liste noire (si SimpleJWT est configuré pour gérer les listes noires)
-
+            
+           
+            
             return Response(
                 {"message": "Déconnexion réussie."},
                 status=status.HTTP_200_OK
