@@ -12,10 +12,13 @@ from .Functions.scrap import scrape_darknet_data
 from .Functions.swot import perform_swot_analysis,setup_swot_analyzer
 from .Functions.resumer import summarize_long_text
 from .Functions.detecteMenace import analyser_texte
+from .Functions.notification import monitor_rss_feeds
 from rest_framework.permissions import IsAuthenticated # type: ignore
 from django.contrib.auth.hashers import check_password
 import json
 import os
+import smtplib
+import feedparser  # type: ignore # Pour lire les flux RSS
 import pandas as pd # type: ignore
 from django.contrib.auth import authenticate
 from collections import Counter
@@ -66,6 +69,18 @@ def clean_text(text):
     text = re.sub(r'\s+', ' ', text)  # Remove multiple spaces
     text = re.sub(r'[^\w\s]', '', text)  # Remove special characters
     return text.strip()
+
+
+class Notification(APIView):
+    def post(self, request, email_user):  # Récupérer l'email depuis l'URL
+        email_to = email_user  # Utiliser l'email de l'URL
+        if not email_to:
+            return Response({"error": "L'email de l'utilisateur est requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Appeler la fonction pour surveiller les flux RSS et envoyer les notifications
+        monitor_rss_feeds(email_to)
+
+        return Response({"message": "Notifications établies avec succès."}, status=status.HTTP_200_OK)
 
 
 """ lister les utilisateurs  """

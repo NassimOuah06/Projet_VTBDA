@@ -307,16 +307,16 @@ const handelMenace = async () => {
 
     return (
         <div>
-            <div style={{ padding: '20px', minHeight: 'auto', overflowY: 'visible', border: '1px solid green' }}>
+            <div style={{ padding: '20px', minHeight: 'auto', overflowY: 'visible' }}>
                 {article ? (
                     <div>
                         <Title>{article.title}</Title>
 
-                        <div style={{ maxWidth: '800px', overflow: 'visible', border: '1px solid red' }}>
+                        <div style={{ maxWidth: '800px', overflow: 'visible' }}>
                             <Image src={article.image} alt={article.title} my="md" />
                         </div>
                         <div>
-                            <Text style={{ wordWrap: 'break-word', whiteSpace: 'normal', border: '1px solid blue' }}>
+                            <Text style={{ wordWrap: 'break-word', whiteSpace: 'normal' }}>
                                 {article.description}
                             </Text>
                         </div>
