@@ -47,6 +47,41 @@ export default function Layout({ children }: PropsWithChildren) {
 
     const isRootPage = pathname === "/";
 
+    useEffect(() => {
+    const userEmail = localStorage.getItem('userEmail');
+
+    if (userEmail) {
+        const intervalId = setInterval(async () => {
+            console.log("Vérification des nouveautés pour :", userEmail);
+            try {
+                const response = await fetch(`http://localhost:8000/api/notification/${userEmail}/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.newUpdates) {
+                        console.log("Nouveautés détectées :", data);
+                        // Vous pouvez afficher une notification ou mettre à jour l'interface ici
+                    } else {
+                        console.log("Aucune nouveauté.");
+                    }
+                } else {
+                    console.error("Erreur lors de la récupération des nouveautés.");
+                }
+            } catch (error) {
+                console.error("Erreur réseau :", error);
+            }
+        }, 3600 * 1000); // 1 heure en millisecondes
+
+        return () => clearInterval(intervalId); // Nettoyage lorsque le composant est démonté
+    }
+}, []); // Ce useEffect ne dépend que de l'initialisation
+
+
   const handleEmailSubmit = async () => {
     console.log("Email submitted:", email);
     const response = await fetch(`http://localhost:8000/api/notification/${email}/`, {
@@ -55,6 +90,7 @@ export default function Layout({ children }: PropsWithChildren) {
             'Content-Type': 'application/json',
         },
     });
+    localStorage.setItem('userEmail', email);
     setIsModalOpen(false);
 };
 
