@@ -97,5 +97,3 @@ def analyser_texte(texte):
         "technologies_et_outils": detecter_technologies_et_outils(texte),
         "methodes_attaque": detecter_methodes_attaque(texte),
     }
-x="Le ransomware LockBit est un exemple de menace informatique qui peut causer des dommages importants. Il exploite les vulnérabilités des systèmes pour chiffrer les données et demander une rançon en échange de la clé de déchiffrement. Les attaques de ransomware sont souvent réalisées à l'aide de techniques sophistiquées comme le phishing ou l'ingénierie sociale. Les organisations doivent se protéger contre ces menaces en mettant en place des mesures de sécurité robustes et en sensibilisant leurs employés aux risques potentiels. En cas d'infection par un ransomware, il est recommandé de ne pas payer la rançon et de contacter les autorités compétentes pour obtenir de l'aide."
-print(analyser_texte(x))

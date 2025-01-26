@@ -8,14 +8,17 @@ from rest_framework.permissions import AllowAny
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from .serializers import ArticleSerializer
-from .Functions.scrap import scrape_darknet_data
+from .Functions.scrap import execute_all
 from .Functions.swot import perform_swot_analysis,setup_swot_analyzer
 from .Functions.resumer import summarize_long_text
 from .Functions.detecteMenace import analyser_texte
+from .Functions.notification import monitor_rss_feeds
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.hashers import check_password
 import json
 import os
+import smtplib
+import feedparser
 import pandas as pd
 from django.contrib.auth import authenticate
 from collections import Counter
@@ -67,6 +70,17 @@ def clean_text(text):
     text = re.sub(r'[^\w\s]', '', text)  # Remove special characters
     return text.strip()
 
+class Notification(APIView):
+    def post(self, request, email_user):  # Récupérer l'email depuis l'URL
+        email_to = email_user  # Utiliser l'email de l'URL
+        if not email_to:
+            return Response({"error": "L'email de l'utilisateur est requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Appeler la fonction pour surveiller les flux RSS et envoyer les notifications
+        monitor_rss_feeds(email_to)
+
+        return Response({"message": "Notifications établies avec succès."}, status=status.HTTP_200_OK)
+
 
 """ lister les utilisateurs  """
 class Users(APIView):
@@ -82,18 +96,14 @@ class Users(APIView):
 
 class scrape(APIView):
     def post(self, request):
-        API_KEY = "AIzaSyA5AnkgAu7SSU9Zquq475xW28tVQqxqrMQ"
-        THEMES = ["darknet", "darkweb", "darknet forums", "cyber crimes", "darkweb forums", "darknet new malwares", "darknet marketplace"]
-        ID_SEARCH = "459e8c331e3324237"
-        OUTPUT_FILE = "resultats_darknet.json"
 
         try:
             # Call the scraping function
-            scraped_data = scrape_darknet_data(API_KEY, THEMES, ID_SEARCH, output_file=OUTPUT_FILE)
+            scraped_data = execute_all()
 
             # Process and save data to the database
             for item in scraped_data:
-                content = item.get("content", "")
+                content = item.get("contenu", "")
                 if content:
                     mot_cles = detecter_mots_cles(content)  # mot_cles is a list of keywords
                 else:
@@ -129,7 +139,7 @@ class scrape(APIView):
 
 """ supprimer tout les articles (juste pour les tests) """    
 class delete(APIView):
-    def post(self, request):
+    def delete(self, request):
         Article.objects.all().delete()
         return Response({"message": "Tous les articles ont été supprimés."}, status=status.HTTP_200_OK)
 
@@ -228,18 +238,43 @@ class AnalyzeArticleAPIView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# class FinalizeArticleAPIView(APIView):
+#     def post(self, request, article_id):
+#         try:
+#             article = Article.objects.get(id=int(article_id))
+#             print(article.mot_cle)
+#             print ('inside try bloc')
+#             article.finaliser = True
+#             print ('finished true')
+#             article.save()
+#             return Response(message="Article finalisé avec succes", status=status.HTTP_200_OK)
+#         except Exception as e:
+#             print ('catching err')
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class FinalizeArticleAPIView(APIView):
     def post(self, request, article_id):
         try:
+            # Fetch the article by ID
             article = Article.objects.get(id=int(article_id))
-        except Article.DoesNotExist:
-            return Response({"error": "Article non trouvé"}, status=status.HTTP_404_NOT_FOUND)
-        try:
+            print("Article found:", article.title)
+
+            # Check if the article is already finalized
             if not article.finaliser:
-                article.finaliser = True
-                article.save()
-            return Response(message="Article finalisé avec succes", status=status.HTTP_200_OK)
+                article.finaliser = True  # Set finaliser to True
+                article.save()  # Save the changes
+                print("Article finalized successfully")
+
+            # Return a success response
+            return Response({"message": "Article finalisé avec succes"}, status=status.HTTP_200_OK)
+
+        except Article.DoesNotExist:
+            # Handle case where the article does not exist
+            return Response({"error": "Article not found"}, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
+            # Handle other exceptions
+            print("Error:", str(e))
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class Signe(APIView):

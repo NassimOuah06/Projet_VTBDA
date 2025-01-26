@@ -20,7 +20,9 @@ def site_extract(sujet, api_key, id_search):
         return None
 
 def scrape(liste_url):
-    """Extraire le contenu des pages Web fournies."""
+    """
+    Extraire le contenu des pages Web fournies.
+    """
     results = []
     for url in liste_url:
         try:
@@ -45,7 +47,7 @@ def scrape(liste_url):
 def scrape_darknet_data(api_key, themes, id_search, output_file=None):
     """
     Fonction principale pour extraire et scraper des données sur le darknet.
-    
+
     :param api_key: Clé API pour Google Custom Search.
     :param themes: Liste des thèmes à rechercher.
     :param id_search: ID de recherche pour Google Custom Search.
@@ -73,11 +75,3 @@ def scrape_darknet_data(api_key, themes, id_search, output_file=None):
         print("Scraping terminé. Aucun fichier de sortie spécifié.")
 
     return scraped_data
-
-if __name__ == "__main__":
-    API_KEY = "AIzaSyA5AnkgAu7SSU9Zquq475xW28tVQqxqrMQ"
-    THEMES = ["darknet forums", "darkweb forums", "darknet new malwares", "darknet marketplace"]
-    ID_SEARCH = "459e8c331e3324237"
-    
-    # Appeler la fonction principale
-    results = scrape_darknet_data(API_KEY, THEMES, ID_SEARCH, output_file="resultats_darknet.json")

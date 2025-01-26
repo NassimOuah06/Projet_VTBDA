@@ -202,37 +202,87 @@ export default function Page({ params }: { params: { id: string } }) {
         }
     };
 
-    const handleFinalization = () => {
+    // const handleFinalization = () => {
+    //     console.log('Article Object:', article);
+    //     console.log('Data Query Parameter:', data);
+
+    //     const queryParams = new URLSearchParams();
+    //     if (summary) queryParams.set('summary', encodeURIComponent(summary));
+    //     if (keywords) queryParams.set('keywords', encodeURIComponent(JSON.stringify(keywords)));
+    //     if (swot) queryParams.set('swot', encodeURIComponent(JSON.stringify(swot)));
+    //     if (menace) queryParams.set('menace', encodeURIComponent(JSON.stringify(menace)));
+    //     if (graphData) queryParams.set('graphData', encodeURIComponent(JSON.stringify(graphData)));
+    //     if (article) {
+    //         queryParams.set('articleName', encodeURIComponent(article.title));
+    //         console.log('Article Name:', article.title);
+    //     }
+    //     console.log('Finalization query params:', queryParams.toString());
+        
+    //     router.push(`/finalization/${article?.id}?${queryParams.toString()}`);
+    // };
+
+    const handleFinalization = async () => {
         console.log('Article Object:', article);
         console.log('Data Query Parameter:', data);
-
-        const queryParams = new URLSearchParams();
-        if (summary) queryParams.set('summary', encodeURIComponent(summary));
-        if (keywords) queryParams.set('keywords', encodeURIComponent(JSON.stringify(keywords)));
-        if (swot) queryParams.set('swot', encodeURIComponent(JSON.stringify(swot)));
-        if (menace) queryParams.set('menace', encodeURIComponent(JSON.stringify(menace)));
-        if (graphData) queryParams.set('graphData', encodeURIComponent(JSON.stringify(graphData)));
-        if (article) {
-            queryParams.set('articleName', encodeURIComponent(article.title));
-            console.log('Article Name:', article.title);
+    
+        // Prepare the payload for the API request
+        const payload = {
+            summary: summary,
+            keywords: keywords,
+            swot: swot,
+            menace: menace,
+            graphData: graphData,
+            articleName: article?.title,
+        };
+    
+        try {
+            // Make a POST request to the Django backend API
+            const response = await fetch(`http://localhost:8000/api/articles/finaliser/${article?.id}`, {
+                method: 'POST', // Use POST to send data
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload), // Send the payload as JSON
+            });
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+    
+            const result = await response.json();
+            console.log('API Response:', result);
+    
+            const queryParams = new URLSearchParams();
+            if (summary) queryParams.set('summary', encodeURIComponent(summary));
+            if (keywords) queryParams.set('keywords', encodeURIComponent(JSON.stringify(keywords)));
+            if (swot) queryParams.set('swot', encodeURIComponent(JSON.stringify(swot)));
+            if (menace) queryParams.set('menace', encodeURIComponent(JSON.stringify(menace)));
+            if (graphData) queryParams.set('graphData', encodeURIComponent(JSON.stringify(graphData)));
+            if (article) {
+                queryParams.set('articleName', encodeURIComponent(article.title));
+                console.log('Article Name:', article.title);
+            }
+            console.log('Finalization query params:', queryParams.toString());
+    
+            router.push(`/finalization/${article?.id}?${queryParams.toString()}`);
+        } catch (error) {
+            console.error('Error finalizing article:', error);
+            alert('Failed to finalize article. Please try again.');
         }
-        console.log('Finalization query params:', queryParams.toString());
-        
-        router.push(`/finalization/${article?.id}?${queryParams.toString()}`);
     };
 
     return (
         <div>
-            <div style={{ padding: '20px', minHeight: 'auto', overflowY: 'visible', border: '1px solid green' }}>
+            <div style={{ padding: '20px', minHeight: 'auto', overflowY: 'visible'}}>
                 {article ? (
                     <div>
                         <Title>{article.title}</Title>
 
-                        <div style={{ maxWidth: '800px', overflow: 'visible', border: '1px solid red' }}>
+                        <div style={{ maxWidth: '800px', overflow: 'visible' }}>
                             <Image src={article.image} alt={article.title} my="md" />
                         </div>
                         <div>
-                            <Text style={{ wordWrap: 'break-word', whiteSpace: 'normal', border: '1px solid blue' }}>
+                            <Text style={{ wordWrap: 'break-word', whiteSpace: 'normal'}}>
                                 {article.description}
                             </Text>
                         </div>
@@ -350,14 +400,14 @@ export default function Page({ params }: { params: { id: string } }) {
                     </div>
 
                     {/* Mots-Clés */}
-                    <div style={{ marginBottom: '15px' }}>
+                    {/* <div style={{ marginBottom: '15px' }}>
                         <h4 style={{ fontWeight: 'bold' }}>Mots-Clés</h4>
                         <ul>
                             {menace.mots_cles.map((mot, index) => (
                                 <li key={index}>{mot}</li>
                             ))}
                         </ul>
-                    </div>
+                    </div>  */}
 
                     {/* Patterns Suspects */}
                     <div style={{ marginBottom: '15px' }}>

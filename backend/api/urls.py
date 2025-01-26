@@ -19,6 +19,8 @@ urlpatterns = [
     path('deleteuser/<int:user_id>',views.DeleteUser.as_view(), name='delete_user'),
     path('logout/',views.Logout.as_view(), name='logout'),
     path('swot/<int:article_id>',views.Swot.as_view(), name='swot'),
+    path('notification/<str:email_user>/', views.Notification.as_view(), name='notification'),
+
 ]
 
 
