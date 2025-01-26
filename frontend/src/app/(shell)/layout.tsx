@@ -3,7 +3,7 @@
 import scrapperImage from '../res/scrapper.png';
 import profile from '/public/images/trojan.jpg'; 
 
-import { Anchor, AppShell, Avatar, Box, Burger, Flex, Group, Indicator, Modal, NavLink, Text, TextInput, Button } from "@mantine/core";
+import { Anchor, AppShell, Avatar, Box, Burger, Flex, Group, Indicator, Modal, NavLink, Text, TextInput, Button, Loader } from "@mantine/core";
 import { forwardRef, PropsWithChildren, useEffect, useState } from "react";
 import { useDisclosure } from "@mantine/hooks";
 import { usePathname } from "next/navigation";
@@ -40,11 +40,21 @@ const MyNavLink = forwardRef<HTMLAnchorElement, { item: NavBarItem }>(({ item },
 export default function Layout({ children }: PropsWithChildren) {
     const [opened, { toggle, close }] = useDisclosure();
     const pathname = usePathname();
+    const[infoLocation, setInfoLocation] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false); 
+    const [loading, setLoading] = useState<'scrap' | 'delete' | null>(null);
     const [email, setEmail] = useState(''); 
 
     useEffect(() => {
         close();
+    }, [pathname]);
+
+    useEffect(() => {
+        if (pathname === '/information') {
+            setInfoLocation(true);
+        } else {
+            setInfoLocation(false);
+        }
     }, [pathname]);
 
     const isRootPage = pathname === "/";
@@ -61,6 +71,7 @@ export default function Layout({ children }: PropsWithChildren) {
     };
 
     const handleScrap = async () => {
+        setLoading('scrap');
         try {
             const response = await fetch('http://localhost:8000/api/scrape/', {
                 method: 'POST',
@@ -77,6 +88,7 @@ export default function Layout({ children }: PropsWithChildren) {
             const result = await response.json();
             console.log('Scrap API Response:', result);
             alert('Scrap operation completed successfully!');
+            setLoading(null);
             window.location.reload();
         } catch (error) {
             console.error('Error during scrap operation:', error);
@@ -86,6 +98,7 @@ export default function Layout({ children }: PropsWithChildren) {
 
     const handleDelete = async () => {
         try {
+            setLoading('delete');
             const response = await fetch('http://localhost:8000/api/delete/', {
                 method: 'DELETE',
                 headers: {
@@ -101,6 +114,7 @@ export default function Layout({ children }: PropsWithChildren) {
             const result = await response.json();
             console.log('Delete API Response:', result);
             alert('Delete operation completed successfully!');
+            setLoading(null);
     
             window.location.reload();
         } catch (error) {
@@ -143,13 +157,17 @@ export default function Layout({ children }: PropsWithChildren) {
                         />
                     </Group>
                     <Box flex={1} />
-                    <Group gap={10}>
+                        <Group gap={10}>
+                    {infoLocation && 
                         <Button variant="outline" onClick={handleScrap}>
-                            Scrap
-                        </Button>
-                        <Button variant="outline" color="red" onClick={handleDelete}>
-                            Delete
-                        </Button>
+                        {loading === 'scrap' ? <Loader size="sm" /> : 'Scrape'}
+                            
+                        </Button>}
+
+                        {infoLocation &&
+                            <Button variant="outline" color="red" onClick={handleDelete}>
+                        {loading === 'delete' ? <Loader size="sm" /> : 'Delete'}
+                        </Button>}
                         <Avatar 
                             component="a" 
                             href="/account" 

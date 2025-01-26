@@ -94,6 +94,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
     const handelSwot = async () => {
         if (!article) return;  
+        setLoading('swot');
         try {
             console.log('Article ID:', article.id, 'Article Name:', article.title);
             
@@ -123,6 +124,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
     const handelMenace = async () => {
         if (!article) return;  
+        setLoading('menace');
         try {
             console.log('Article ID:', article.id, 'Article Name:', article.title);
             
@@ -322,7 +324,7 @@ export default function Page({ params }: { params: { id: string } }) {
                         disabled={loading === 'menace'}
                         style={{ borderRadius: '8px', fontWeight: 'bold' }}
                     >
-                        {loading === 'swot' ? <Loader size="sm" /> : 'Extract Menace'}
+                        {loading === 'menace' ? <Loader size="sm" /> : 'Extract Information'}
                     </Button>
                     <Button
                         variant="outline"

@@ -164,40 +164,54 @@ export default function FinalizationPage() {
     const downloadAsPDF = async () => {
         const element = document.getElementById('analysis-content');
         if (!element) return;
-
+    
         const articleTitle = `Article: ${articleName}`;
-
-        const marginLeft = 20;
+    
+        const marginLeft = 10;
         const marginRight = 20;
         const marginTop = 30;
         const marginBottom = 20;
-
+    
         const pdf = new jsPDF('p', 'mm', 'a4');
-
+    
         const pdfWidth = pdf.internal.pageSize.getWidth() - marginLeft - marginRight;
         const pdfHeight = pdf.internal.pageSize.getHeight() - marginTop - marginBottom;
-
+    
+        // Assurer que le titre ne déborde pas
+        const wrappedTitle = pdf.splitTextToSize(articleTitle, pdfWidth); // Découpe le texte en lignes en fonction de la largeur disponible
+    
+        // Ajuster la position après le titre
+        let currentY = marginTop;
+    
+        // Ajouter le titre avec gestion du saut de ligne
+        pdf.setFontSize(14);
+        wrappedTitle.forEach((line: string) => {
+            pdf.text(line, marginLeft, currentY);
+            currentY += 8; // Espacement entre les lignes (ajustez si nécessaire)
+        });
+    
+        // Convertir l'élément en image avec html2canvas
         const canvas = await html2canvas(element, {
             scale: 3,
         });
-
+    
         const imgData = canvas.toDataURL('image/png');
-
-        pdf.setFontSize(24);
-        pdf.text(articleTitle, marginLeft, marginTop - 10);
-
         const imgProps = pdf.getImageProperties(imgData);
         const imgWidth = imgProps.width;
         const imgHeight = imgProps.height;
-
+    
+        // Calculer les dimensions de l'image pour qu'elle s'adapte à la page
         const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
         const width = imgWidth * ratio;
         const height = imgHeight * ratio;
-
-        pdf.addImage(imgData, 'PNG', marginLeft, marginTop, width, height);
-
+    
+        // Ajouter l'image sous le titre
+        pdf.addImage(imgData, 'PNG', marginLeft, currentY, width, height);
+    
+        // Télécharger le fichier PDF
         pdf.save(`analysis-report-${articleName}.pdf`);
     };
+    
 
     const downloadAsWord = () => {
         const doc = new Document({
@@ -238,14 +252,7 @@ export default function FinalizationPage() {
                                 }),
                             ],
                         }),
-                        new Paragraph({
-                            children: [
-                                new TextRun({
-                                    text: 'Charts are included as images in the PDF version.',
-                                    size: 20,
-                                }),
-                            ],
-                        }),
+
                     ],
                 },
             ],
