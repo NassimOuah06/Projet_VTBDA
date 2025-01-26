@@ -37,16 +37,18 @@ export default function FinalizationPage() {
     const searchParams = useSearchParams();
     const params = useParams();
 
-    // const articleName = params.name || searchParams.get('articleName') || 'Unnamed Article';
     const articleName = searchParams.get('articleName') ? decodeURIComponent(searchParams.get('articleName')!) : 'Unnamed Article';
-
     const summary = searchParams.get('summary');
     const keywords = searchParams.get('keywords');
     const graphData = searchParams.get('graphData');
+    const swot = searchParams.get('swot');
+    const menace = searchParams.get('menace');
 
     const decodedSummary = summary ? decodeURIComponent(summary) : null;
     const decodedKeywords = keywords ? JSON.parse(decodeURIComponent(keywords)) : null;
     const decodedGraphData = graphData ? JSON.parse(decodeURIComponent(graphData)) : null;
+    const decodedSwot = swot ? JSON.parse(decodeURIComponent(swot)) : null;
+    const decodedMenace = menace ? JSON.parse(decodeURIComponent(menace)) : null;
 
     const LineChart = () => {
         if (!decodedGraphData) return null;
@@ -162,38 +164,38 @@ export default function FinalizationPage() {
     const downloadAsPDF = async () => {
         const element = document.getElementById('analysis-content');
         if (!element) return;
-    
+
         const articleTitle = `Article: ${articleName}`;
-    
+
         const marginLeft = 20;
-        const marginRight = 20; 
-        const marginTop = 30; 
+        const marginRight = 20;
+        const marginTop = 30;
         const marginBottom = 20;
-    
+
         const pdf = new jsPDF('p', 'mm', 'a4');
-    
+
         const pdfWidth = pdf.internal.pageSize.getWidth() - marginLeft - marginRight;
         const pdfHeight = pdf.internal.pageSize.getHeight() - marginTop - marginBottom;
-    
+
         const canvas = await html2canvas(element, {
-            scale: 3, 
+            scale: 3,
         });
-    
+
         const imgData = canvas.toDataURL('image/png');
-    
-        pdf.setFontSize(24); 
-        pdf.text(articleTitle, marginLeft, marginTop - 10); 
-    
+
+        pdf.setFontSize(24);
+        pdf.text(articleTitle, marginLeft, marginTop - 10);
+
         const imgProps = pdf.getImageProperties(imgData);
         const imgWidth = imgProps.width;
         const imgHeight = imgProps.height;
-    
+
         const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
         const width = imgWidth * ratio;
         const height = imgHeight * ratio;
-    
+
         pdf.addImage(imgData, 'PNG', marginLeft, marginTop, width, height);
-    
+
         pdf.save(`analysis-report-${articleName}.pdf`);
     };
 
@@ -255,39 +257,38 @@ export default function FinalizationPage() {
     };
 
     const shareViaEmail = async () => {
-
         const element = document.getElementById('analysis-content');
         if (!element) return;
-    
+
         const canvas = await html2canvas(element);
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
         const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    
+
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    
+
         const pdfBlob = pdf.output('blob');
         const pdfUrl = URL.createObjectURL(pdfBlob);
-    
+
         const link = document.createElement('a');
         link.href = pdfUrl;
         link.download = `analysis-report-${articleName}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-    
+
         const subject = `Analysis Report for Article: ${articleName}`;
         const body = `Please find the analysis report attached.\n\nSummary:\n${decodedSummary || 'No summary available'}\n\nKeywords:\n${decodedKeywords ? decodedKeywords.join(', ') : 'No keywords available'}`;
-    
+
         const encodedSubject = encodeURIComponent(subject);
         const encodedBody = encodeURIComponent(body);
-    
+
         const mailtoUrl = `mailto:?subject=${encodedSubject}&body=${encodedBody}`;
-    
+
         window.location.href = mailtoUrl;
-    
+
         alert('The PDF has been downloaded. Please attach it manually to the email.');
     };
 
@@ -318,25 +319,89 @@ export default function FinalizationPage() {
                     </Box>
                 )}
 
-                {/* Display Charts */}
-                {decodedGraphData && (
-                    <div style={{ marginTop: '20px' }}>
-                        <Title order={3} style={{ marginBottom: '20px' }}>Chart Visualizations</Title>
-                        <Group align="flex-start">
-                            <Box style={{ width: '45%', border: '1px solid #ddd', borderRadius: '8px', padding: '20px' }}>
-                                <Title order={4}>Line Chart</Title>
-                                <LineChart />
+                {/* Display SWOT Analysis */}
+                {decodedSwot && (
+    <Box style={{ marginTop: '20px' }}>
+        <Title order={3}>SWOT Analysis</Title>
+        {Object.entries(decodedSwot).map(([key, value]) => (
+            <div key={key}>
+                <Title order={4}>{key}</Title>
+                <Text>{value as string}</Text>
+            </div>
+        ))}
+    </Box>
+)}
+
+                {/* Display Menace Analysis */}
+                {decodedMenace && (
+                    <Box style={{ marginTop: '20px' }}>
+                        <Title order={3}>Menace Analysis</Title>
+
+                        {/* Display Mots-clés */}
+                        {decodedMenace.mots_cles && (
+                            <Box style={{ marginTop: '10px' }}>
+                                <Title order={4}>Mots-clés</Title>
+                                <ul>
+                                    {decodedMenace.mots_cles.map((mot: string, index: number) => (
+                                        <li key={index}>{mot}</li>
+                                    ))}
+                                </ul>
                             </Box>
-                            <Box style={{ width: '45%', border: '1px solid #ddd', borderRadius: '8px', padding: '20px' }}>
-                                <Title order={4}>Bar Chart</Title>
-                                <BarChart />
+                        )}
+
+                        {/* Display Patterns Suspects */}
+                        {decodedMenace.patterns_suspects && (
+                            <Box style={{ marginTop: '10px' }}>
+                                <Title order={4}>Patterns Suspects</Title>
+                                <ul>
+                                    {decodedMenace.patterns_suspects.map((pattern: string, index: number) => (
+                                        <li key={index}>{pattern}</li>
+                                    ))}
+                                </ul>
                             </Box>
-                            <Box style={{ width: '45%', border: '1px solid #ddd', borderRadius: '8px', padding: '20px' }}>
-                                <Title order={4}>Pie Chart</Title>
-                                <PieChart />
+                        )}
+
+                        {/* Display Entités Nommées */}
+                        {decodedMenace.entites_nommees && (
+                            <Box style={{ marginTop: '10px' }}>
+                                <Title order={4}>Entités Nommées</Title>
+                                {Object.entries(decodedMenace.entites_nommees).map(([type, entites]) => (
+                                    <div key={type}>
+                                        <Title order={5}>{type}</Title>
+                                        <ul>
+                                            {(entites as string[]).map((entite: string, index: number) => (
+                                                <li key={index}>{entite}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
                             </Box>
-                        </Group>
-                    </div>
+                        )}
+
+                        {/* Display Technologies et Outils */}
+                        {decodedMenace.technologies_et_outils && (
+                            <Box style={{ marginTop: '10px' }}>
+                                <Title order={4}>Technologies et Outils</Title>
+                                <ul>
+                                    {decodedMenace.technologies_et_outils.map((tech: string, index: number) => (
+                                        <li key={index}>{tech}</li>
+                                    ))}
+                                </ul>
+                            </Box>
+                        )}
+
+                        {/* Display Méthodes d'Attaque */}
+                        {decodedMenace.methodes_attaque && (
+                            <Box style={{ marginTop: '10px' }}>
+                                <Title order={4}>Méthodes d'Attaque</Title>
+                                <ul>
+                                    {decodedMenace.methodes_attaque.map((methode: string, index: number) => (
+                                        <li key={index}>{methode}</li>
+                                    ))}
+                                </ul>
+                            </Box>
+                        )}
+                    </Box>
                 )}
             </div>
 

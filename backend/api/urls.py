@@ -18,6 +18,7 @@ urlpatterns = [
     path('updateuser/<str:email>',views.UpdateUser.as_view(), name='update_user'),
     path('deleteuser/<int:user_id>',views.DeleteUser.as_view(), name='delete_user'),
     path('logout/',views.Logout.as_view(), name='logout'),
+    path('swot/<int:article_id>',views.Swot.as_view(), name='swot'),
 ]
 
 

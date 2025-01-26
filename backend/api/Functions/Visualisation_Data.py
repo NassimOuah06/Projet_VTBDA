@@ -5,15 +5,15 @@ from collections import defaultdict
 
 # Données d'exemple (simulées)
 donnees_menaces = [
-    {"type": "Ransomware", "date": "2023-10-01", "count": 5},
-    {"type": "Phishing", "date": "2023-10-01", "count": 10},
-    {"type": "DDoS", "date": "2023-10-01", "count": 3},
-    {"type": "Ransomware", "date": "2023-10-02", "count": 7},
-    {"type": "Phishing", "date": "2023-10-02", "count": 12},
-    {"type": "DDoS", "date": "2023-10-02", "count": 2},
-    {"type": "Ransomware", "date": "2023-10-03", "count": 6},
-    {"type": "Phishing", "date": "2023-10-03", "count": 8},
-    {"type": "DDoS", "date": "2023-10-03", "count": 4},
+    {"type": "Ransomware", "count": 5},
+    {"type": "Phishing", "count": 10},
+    {"type": "DDoS", "count": 3},
+    {"type": "Ransomware", "count": 7},
+    {"type": "Phishing", "count": 12},
+    {"type": "DDoS", "count": 2},
+    {"type": "Ransomware", "count": 6},
+    {"type": "Phishing", "count": 8},
+    {"type": "DDoS", "count": 4},
 ]
 
 # Convertir les données en DataFrame

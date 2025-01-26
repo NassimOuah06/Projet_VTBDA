@@ -9,6 +9,7 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from .serializers import ArticleSerializer
 from .Functions.scrap import scrape_darknet_data
+from .Functions.swot import perform_swot_analysis,setup_swot_analyzer
 from .Functions.resumer import summarize_long_text
 from .Functions.detecteMenace import analyser_texte
 from rest_framework.permissions import IsAuthenticated
@@ -161,6 +162,9 @@ class SummarizeArticleAPIView(APIView):
                 "title": article.title,
                 "summary": summary  # Assuming 'description' contains the content to summarize
             }
+            if not article.analyser:
+                article.analyser = True
+                article.save()
             # Summarize the article
             return Response(article_data, status=status.HTTP_200_OK)
         except Article.DoesNotExist:
@@ -173,12 +177,40 @@ class SummarizeArticleAPIView(APIView):
 class Statestique(APIView):
     def get(self, request):
         try:
-            article = Article.objects.filter()
-            
-        except Article.DoesNotExist:
-            return Response({"error": "Article non trouvé"}, status=status.HTTP_404_NOT_FOUND)
+            # Récupérer tous les articles
+            articles = Article.objects.all()
 
-        return Response({"image": article.image})
+            # Si aucun article n'existe, retourner une erreur 404
+            if not articles.exists():
+                return Response({"error": "Aucun article trouvé"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Statistiques de base
+            total_articles = articles.count()
+            articles_analysed = articles.filter(analyser=True).count()
+            articles_finalised = articles.filter(finaliser=True).count()
+
+            # Extraire et compter les mots-clés
+            keyword_counter = Counter()
+            for article in articles:
+                if article.mot_cle:
+                    keywords = article.mot_cle.split(',')
+                    keywords = [keyword.strip() for keyword in keywords if keyword.strip()]
+                    keyword_counter.update(keywords)
+
+            # Convertir le compteur en une liste de dictionnaires
+            most_common_keywords = [{"keyword": keyword, "count": count} for keyword, count in keyword_counter.most_common(5)]
+
+            # Retourner les statistiques
+            return Response({
+                "total_articles": total_articles,
+                "articles_analysed": articles_analysed,
+                "articles_finalised": articles_finalised,
+                "most_common_keywords": most_common_keywords,
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class AnalyzeArticleAPIView(APIView):
     def post(self, request, article_id):
@@ -189,8 +221,9 @@ class AnalyzeArticleAPIView(APIView):
         try:
             # Analyse de l'article
             rapport = analyser_texte(article.description)
-            # article.analyser = True
-            # article.save()
+            if not article.analyser:
+                article.analyser = True
+                article.save()
             return Response({"Rapport": rapport}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -202,9 +235,9 @@ class FinalizeArticleAPIView(APIView):
         except Article.DoesNotExist:
             return Response({"error": "Article non trouvé"}, status=status.HTTP_404_NOT_FOUND)
         try:
-            # Analyse de l'article
-            article.finaliser = True
-            article.save()
+            if not article.finaliser:
+                article.finaliser = True
+                article.save()
             return Response(message="Article finalisé avec succes", status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -432,3 +465,31 @@ class DeleteUser(APIView):
             {"message": f"Utilisateur avec l'ID {user_id} a été supprimé avec succès."},
             status=status.HTTP_200_OK
         )            
+
+classifier, nlp_fr, nlp_en = setup_swot_analyzer()
+class Swot(APIView):
+    def post(self, request, article_id, *args, **kwargs):
+        """
+        Effectue une analyse SWOT sur le texte de l'article spécifié par son ID.
+        """
+        try:
+            # Récupérer l'article à partir de son ID
+            article = Article.objects.get(id=article_id)
+            text = article.description  # Supposons que le texte de l'article est dans le champ `description`
+            
+            # Effectuer l'analyse SWOT en passant classifier et nlp
+            swot_results = perform_swot_analysis(text, classifier, nlp_fr, nlp_en)
+            if not article.analyser:
+                article.analyser = True
+                article.save()
+            return Response(swot_results, status=status.HTTP_200_OK)
+        except Article.DoesNotExist:
+            return Response(
+                {"error": "Article non trouvé."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Une erreur s'est produite lors de l'analyse SWOT : {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

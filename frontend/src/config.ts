@@ -49,6 +49,12 @@ export const config: ConfigType = {
                 icon: IconMessage,
                 withCheveron: true
             },
+            {
+                label: "Graphs",
+                path: '/graphs',
+                icon: IconMessage,
+                withCheveron: true
+            }
         ]
     },
 }
